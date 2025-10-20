@@ -1,20 +1,22 @@
-'use client';
+"use client";
 
-import styles from './Students.module.scss';
-import StudentInterface from '@/types/StudentInterface';
-import useStudents from '@/hooks/useStudents';
+import styles from "./Students.module.scss";
+import StudentInterface from "@/types/StudentInterface";
+import useStudents from "@/hooks/useStudents";
+import Student from "./Student/Student";
+import { AddStudentForm } from "./AddStudentForm/AddStudentForm";
 
 const Students = (): React.ReactElement => {
-  const {  students } = useStudents();
+  const { students, deleteStudentMutate, createStudentMutate } = useStudents();
 
   return (
     <div className={styles.Groups}>
-      {students.map((student: StudentInterface) => (
-        <h2 key={student.id}>
-          {`${student.first_name} ${student.middle_name} ${student.last_name}`}
-       
-        </h2>
-      ))}
+      <AddStudentForm createStudentMutate={createStudentMutate} />
+      <div>
+        {students.map((student: StudentInterface, i: number) => (
+          <Student key={i} student={student} onDelete={deleteStudentMutate} />
+        ))}
+      </div>
     </div>
   );
 };

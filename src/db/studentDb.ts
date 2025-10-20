@@ -1,34 +1,58 @@
-import sqlite3 from "sqlite3";
+import { Student } from './entity/Student.entity';
+import type StudentInterface from '@/types/StudentInterface';
+import getRandomFio from '@/utils/getRandomFio';
+import AppDataSource from './AppDataSource';
 
-import type StudentInterface from "@/types/StudentInterface";
+const studentRepository = AppDataSource.getRepository(Student);
 
-sqlite3.verbose();
-
+/**
+ * Получение студентов
+ * @returns Promise<StudentInterface[]>
+ */
 export const getStudentsDb = async (): Promise<StudentInterface[]> => {
-  const db = new sqlite3.Database(process.env.DB ?? "./db/vki-web.db");
+  return await studentRepository.find();
+};
 
-  const students = await new Promise((resolve, reject) => {
-    const sql = "SELECT * FROM student";
-    db.all(sql, [], (err, rows) => {
-      if (err) {
-        reject(err);
-        db.close();
-        return;
-      }
-      resolve(rows);
-      db.close();
-    });
+/**
+ * Удаления студента
+ * @param studentId ИД удаляемого студента
+ * @returns
+ */
+export const deleteStudentDb = async (studentId: number): Promise<number> => {
+  await studentRepository.delete(studentId);
+  return studentId;
+};
+
+/**
+ * Добавление студента
+ * @param studentField поля студента
+ * @returns
+ */
+export const addStudentDb = async (studentFields: Omit<StudentInterface, 'id'>): Promise<StudentInterface> => {
+  const student = new Student();
+  const newStudent = await studentRepository.save({
+    ...student,
+    ...studentFields,
   });
+  return newStudent;
+};
 
-  // test data
-  // const groups: GroupInterface[] = [
-  //   {
-  //     name: '2207 д2',
-  //   },
-  //   {
-  //     name: '2207 д2',
-  //   },
-  // ];
+/**
+ * Добавление  рандомных студента
+ */
+export const addRandomStudentsDb = async (amount: number = 10): Promise<StudentInterface[]> => {
+  const students: StudentInterface[] = [];
 
-  return students as StudentInterface[];
+  for (let i = 0; i < amount; i++) {
+    const fio = getRandomFio();
+
+    const newStudent = await addStudentDb({
+      ...fio,
+      contacts: 'contact',
+      groupId: 1,
+    });
+    students.push(newStudent);
+  }
+
+  return students;
 };
