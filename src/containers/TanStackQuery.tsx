@@ -1,14 +1,8 @@
-"use client";
+'use client';
 
-import {
-  hydrate,
-  QueryClientProvider,
-  type DehydratedState,
-} from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { HydrationBoundary } from "@tanstack/react-query";
-
-import queryClient from "@/api/reactQueryClient";
+import { hydrate, QueryClientProvider, type DehydratedState } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import queryClient from '@/api/reactQueryClient';
 
 interface Props {
   state: DehydratedState;
@@ -20,12 +14,7 @@ const TanStackQuery = ({ state, children }: Props): React.ReactElement => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* <HydrationBoundary
-      state={state}
-      queryClient={queryClient}
-    > */}
       {children}
-      {/* </HydrationBoundary> */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
