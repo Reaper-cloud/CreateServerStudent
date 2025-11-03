@@ -1,28 +1,23 @@
-import { getStudentsDb, addStudentDb } from '@/db/studentDb';
-import { type NextApiRequest } from 'next/types';
+import { createStudentDb, getStudentsDb } from "@/db/studentDb";
+import CreateStudentDto from "@/dto/CreateStudentDto";
 
 export async function GET(): Promise<Response> {
   const students = await getStudentsDb();
 
   return new Response(JSON.stringify(students), {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
-};
+}
 
-export async function POST(req: NextApiRequest): Promise<Response> {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const student = await req.json();
+export async function POST(request: Request): Promise<Response> {
+  const dto: CreateStudentDto = await request.json();
+  const student = await createStudentDb(dto);
 
-  const newStudent = await addStudentDb(student);
-
-  console.log(newStudent);
-  return new Response(JSON.stringify(newStudent), {
-    status: 201,
+  return new Response(JSON.stringify(student), {
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
-};
+}

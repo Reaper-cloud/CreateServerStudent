@@ -1,4 +1,3 @@
--- Active: 1757427728965@@127.0.0.1@3306
 
 DROP TABLE student;
 CREATE TABLE student(  
@@ -9,7 +8,3 @@ CREATE TABLE student(
     groupId INTEGER,
     FOREIGN KEY (groupId) REFERENCES class(id)
 );
-
-ALTER TABLE student ADD uuid [text];
-
-DELETE FROM student;
