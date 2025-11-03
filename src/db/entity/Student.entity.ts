@@ -5,6 +5,9 @@ export class Student {
   @PrimaryGeneratedColumn()
   id!: number;
 
+  @Column({ default: '' })
+  uuid?: string;
+
   @Column()
   firstName!: string;
 
@@ -14,8 +17,8 @@ export class Student {
   @Column()
   middleName!: string;
 
-  @Column()
-  contacts!: string;
+  @Column({ default: '' })
+  contacts?: string;
 
   @Column()
   groupId!: number;
