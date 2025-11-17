@@ -9,6 +9,8 @@ import CreateStudentDto from "@/dto/CreateStudentDto";
 
 interface StudentsHookInterface {
   students: StudentInterface[];
+  isLoading: boolean;
+  getStudentById: (studentId: string) => StudentInterface | undefined;
   deleteStudentMutate: (studentId: number) => void;
   createStudentMutate: (dto: CreateStudentDto) => void;
 }
@@ -16,22 +18,27 @@ interface StudentsHookInterface {
 const useStudents = (): StudentsHookInterface => {
   const queryClient = useQueryClient();
 
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["students"],
     queryFn: () => getStudentsApi(),
-    enabled: false,
+    enabled: true, // Изменено на true для автоматической загрузки
   });
+
+  /**
+   * Получить студента по ID
+   */
+  const getStudentById = (studentId: string): StudentInterface | undefined => {
+    const students = data ?? [];
+    return students.find(student => student.id.toString() === studentId);
+  };
 
   /**
    * Мутация удаления студента
    */
   const deleteStudentMutate = useMutation({
-    // вызов API delete
     mutationFn: async (studentId: number) => await deleteStudentApi(studentId),
-    // оптимистичная мутация (обновляем данные на клиенте до API запроса delete)
     onMutate: async (studentId: number) => {
       await queryClient.cancelQueries({ queryKey: ["students"] });
-      // получаем данные из TanStackQuery
       const previousStudents = queryClient.getQueryData<StudentInterface[]>([
         "students",
       ]);
@@ -39,12 +46,11 @@ const useStudents = (): StudentsHookInterface => {
 
       if (!updatedStudents) return;
 
-      // помечаем удаляемую запись
       updatedStudents = updatedStudents.map((student: StudentInterface) => ({
         ...student,
         ...(student.id === studentId ? { isDeleted: true } : {}),
       }));
-      // обновляем данные в TanStackQuery
+      
       queryClient.setQueryData<StudentInterface[]>(
         ["students"],
         updatedStudents
@@ -59,17 +65,13 @@ const useStudents = (): StudentsHookInterface => {
         context?.previousStudents
       );
     },
-    // обновляем данные в случаи успешного выполнения mutationFn: async (studentId: number) => deleteStudentApi(studentId),
-    onSuccess: async (studentId, variables, { previousStudents }) => {
+    onSuccess: async (studentId, variables, context) => {
       await queryClient.cancelQueries({ queryKey: ["students"] });
-      // вариант 1 - запрос всех записей
-      // refetch();
-
-      // вариант 2 - удаление конкретной записи
-      if (!previousStudents) {
+      
+      if (!context?.previousStudents) {
         return;
       }
-      const updatedStudents = previousStudents.filter(
+      const updatedStudents = context.previousStudents.filter(
         (student: StudentInterface) => student.id !== studentId
       );
       queryClient.setQueryData<StudentInterface[]>(
@@ -77,10 +79,6 @@ const useStudents = (): StudentsHookInterface => {
         updatedStudents
       );
     },
-    // onSettled: (data, error, variables, context) => {
-    //   // вызывается после выполнения запроса в случаи удачи или ошибке
-    //   console.log('>> deleteStudentMutate onSettled', data, error, variables, context);
-    // },
   });
 
   /**
@@ -139,8 +137,11 @@ const useStudents = (): StudentsHookInterface => {
 
   return {
     students: data ?? [],
+    isLoading,
+    getStudentById,
     deleteStudentMutate: deleteStudentMutate.mutate,
     createStudentMutate: createStudentMutate.mutate,
   };
 };
+
 export default useStudents;
